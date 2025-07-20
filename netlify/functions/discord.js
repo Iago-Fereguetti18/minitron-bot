@@ -1,15 +1,19 @@
-const { InteractionType, InteractionResponseType, verifyKeyMiddleware } = require('discord-interactions');
+const { InteractionType, InteractionResponseType, verifyKey } = require('discord-interactions');
 require('dotenv').config();
 
-// ESTA É A LINHA QUE ESTAVA FALTANDO OU INCORRETA
 exports.handler = async (event) => {
-  const isValid = await verifyKeyMiddleware(process.env.DISCORD_PUBLIC_KEY)(event);
-  if (!isValid) {
+  // A verificação de segurança agora é mais explícita
+  const signature = event.headers['x-signature-ed25519'];
+  const timestamp = event.headers['x-signature-timestamp'];
+  const rawBody = event.body;
+  const isValidRequest = verifyKey(rawBody, signature, timestamp, process.env.DISCORD_PUBLIC_KEY);
+
+  if (!isValidRequest) {
     console.error('Invalid Request Signature');
     return { statusCode: 401, body: 'Bad request signature' };
   }
 
-  const body = JSON.parse(event.body);
+  const body = JSON.parse(rawBody);
 
   if (body.type === InteractionType.PING) {
     return {
