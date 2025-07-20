@@ -3,3 +3,5 @@ node_modules
 
 # Ignorar segredos
 .env
+# Local Netlify folder
+.netlify
